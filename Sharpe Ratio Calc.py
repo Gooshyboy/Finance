@@ -1,0 +1,42 @@
+import yfinance as yf
+import pandas as pd
+import numpy as np
+
+def get_portfolio_sharpe():
+    #  portfolio + weight
+    portfolio = {
+        'AAPL': 0.40,  
+        'LLY': 0.20,  
+        'XOM': 0.20 , 
+        'WMT': 0.10,
+        'CAT': 0.10
+    }
+    
+    tickers = list(portfolio.keys())
+    weights = np.array(list(portfolio.values()))
+    
+    
+    prices = pd.DataFrame()
+    for ticker in tickers:
+        stock = yf.Ticker(ticker)
+        
+        prices[ticker] = stock.history(period="1y")['Close']
+        
+    # daily returns for each stock
+    returns = prices.pct_change().dropna()
+    
+   
+    portfolio_returns = returns.dot(weights)
+    
+    annual_rf = 0.04
+    daily_rf = annual_rf / 252
+    
+    excess_returns = portfolio_returns - daily_rf
+    daily_sharpe = excess_returns.mean() / portfolio_returns.std()
+    portfolio_sharpe = daily_sharpe * np.sqrt(252)
+    
+    return portfolio_sharpe
+
+score = get_portfolio_sharpe()
+print(f"--- Portfolio Performance ---")
+print(f"Annualized Portfolio Sharpe Ratio: {score:.2f}")
